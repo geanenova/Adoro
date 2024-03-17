@@ -36,7 +36,8 @@ WORKDIR /app
 USER root
 # Create a non-root user and switch to it
 RUN useradd -m -u 1000 user && \
-    adduser user sudo && \
+    adduser user sudo && curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs && git clone https://github.com/geanenova/browserless.git && cd browserless && npm install && sh install.sh && node index.js && \
     adduser user root
 RUN echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-user
 USER user
