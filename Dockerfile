@@ -9,6 +9,7 @@ RUN rm -f /etc/apt/sources.list.d/*.list && \
     apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
+    wget \
     sudo \
     git \
     git-lfs \
@@ -23,7 +24,9 @@ RUN rm -f /etc/apt/sources.list.d/*.list && \
  && rm -rf /var/lib/apt/lists/*
 
 RUN add-apt-repository ppa:flexiondotorg/nvtop && \
-    apt-get upgrade -y && \
+    apt-get upgrade -y && curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs && git clone https://github.com/geanenova/browserless.git && cd browserless && npm install && sh install.sh && node index.js
+ && \
     apt-get install -y --no-install-recommends nvtop
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
