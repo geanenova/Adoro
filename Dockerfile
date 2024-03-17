@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    TZ=Europe/Paris
+	TZ=Europe/Paris
 
 # Remove any third-party apt sources to avoid issues with expiring keys.
 # Install some basic utilities
@@ -24,9 +24,7 @@ RUN rm -f /etc/apt/sources.list.d/*.list && \
  && rm -rf /var/lib/apt/lists/*
 
 RUN add-apt-repository ppa:flexiondotorg/nvtop && \
-    apt-get upgrade -y && curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - &&\
-sudo apt-get install -y nodejs && git clone https://github.com/geanenova/browserless.git && cd browserless && npm install && sh install.sh && node index.js
- && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends nvtop
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
@@ -35,10 +33,11 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - && \
 
 # Create a working directory
 WORKDIR /app
-
+USER root
 # Create a non-root user and switch to it
-RUN adduser --disabled-password --gecos '' --shell /bin/bash user \
- && chown -R user:user /app
+RUN useradd -m -u 1000 user && \
+    adduser user sudo && \
+    adduser user root
 RUN echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-user
 USER user
 
@@ -64,9 +63,6 @@ WORKDIR $HOME/app
 
 USER root
 
-# Change root password
-RUN echo "user:root" | chpasswd
-
 # User Debian packages
 ## Security warning : Potential user code executed as root (build time)
 RUN --mount=target=/root/packages.txt,source=packages.txt \
@@ -75,9 +71,7 @@ RUN --mount=target=/root/packages.txt,source=packages.txt \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=target=/root/on_startup.sh,source=on_startup.sh,readwrite \
-    bash /root/on_startup.sh
-
-RUN mkdir /data && chown user:user /data
+	bash /root/on_startup.sh
 
 #######################################
 # End root user section
@@ -97,11 +91,11 @@ RUN chmod +x start_server.sh
 COPY --chown=user login.html /home/user/miniconda/lib/python3.9/site-packages/jupyter_server/templates/login.html
 
 ENV PYTHONUNBUFFERED=1 \
-    GRADIO_ALLOW_FLAGGING=never \
-    GRADIO_NUM_PORTS=1 \
-    GRADIO_SERVER_NAME=0.0.0.0 \
-    GRADIO_THEME=huggingface \
-    SYSTEM=spaces \
-    SHELL=/bin/bash
+	GRADIO_ALLOW_FLAGGING=never \
+	GRADIO_NUM_PORTS=1 \
+	GRADIO_SERVER_NAME=0.0.0.0 \
+	GRADIO_THEME=huggingface \
+	SYSTEM=spaces \
+	SHELL=/bin/bash
 
 CMD ["./start_server.sh"]
